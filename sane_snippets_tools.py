@@ -33,14 +33,16 @@ class SnippetConvertor:
     re_sane_header_line = re.compile(r'^(?:(?P<comment>#.*)|(?P<key>[a-zA-Z]+): *(?P<value>.*))$')
 
     @classmethod
-    def parse(cls, file):
+    def get_format(cls, file):
         if file.endswith('.sane-snippet'):
-            format_ = 'sane'
+            return 'sane'
         elif file.endswith('.sublime-snippet'):
-            format_ = 'xml'
+            return 'xml'
         else:
             raise ValueError('Unknown file format')
 
+    @classmethod
+    def parse(cls, file, format_):
         if format_ == 'xml':
             root = ET.parse(file).getroot()
             content = getattr(root.find('content'), 'text', '')
@@ -72,36 +74,34 @@ class SnippetConvertor:
                 'content': content,
                 'tabTrigger': infos.get('tabTrigger', ''),
                 'scope': infos.get('scope', ''),
-                'description': infos.get('description', '')
+                'description': infos.get('description', ''),
             }
 
     @classmethod
     def stringify(cls, snippetobj, format_):
         return cls.templates[format_].format(**snippetobj)
 
-def get_file_name(sane_snippet_path):
-    name = os.path.basename(sane_snippet_path)
-    return os.path.splitext(name)[0] + '.sublime-snippet'
-
-def generate_sublime_snippet(sane_snippet_path, dst):
-    snippetobj = SnippetConvertor.parse(os.path.join(sublime.packages_path(), sane_snippet_path))
-    file_name = os.path.join(sublime.packages_path(), dst)
-    if not os.path.exists(file_name):
-        os.makedirs(file_name)
-    file_name = os.path.join(file_name, get_file_name(sane_snippet_path))
-    with open(file_name, 'w') as fp:
-        fp.write(SnippetConvertor.stringify(snippetobj, 'xml'))
-
-# def generate_sublime_snippets(snippet_folder, dst_folder):
-#     for _, dirs, files in os.walk(snippet_folder):
-
-def generate_sane_snippet(sublime_snippet_path, dst):
-    """Convert a .sublime-snippet and write it at dst. Those two path must be absolute"""
-    snippetobj = SnippetConvertor.parse(sublime_snippet_path)
+def generate_snippet(src, dst):
+    """Automatically detects if it has to convert it to a sane or sublime format"""
+    format_ = SnippetConvertor.get_format(src)
+    snippetobj = SnippetConvertor.parse(src, format_)
     if not os.path.exists(os.path.dirname(dst)):
         os.makedirs(os.path.dirname(dst))
     with open(dst, 'w', encoding='utf-8') as fp:
-        fp.write(SnippetConvertor.stringify(snippetobj, 'sane'))
+        fp.write(SnippetConvertor.stringify(snippetobj, SnippetConvertor.get_format(dst)))
+
+def generate_sublime_snippets(snippet_folder, dst_folder_name):
+    """Export every sane-snippet to the corresponding .sublime-snippet file"""
+    rel_path = lambda file: file[len(snippet_folder):].strip(os.path.sep + '/')
+    for root, dirs, files in os.walk(snippet_folder):
+        for file in files:
+            if not file.endswith('.sane-snippet'):
+                continue
+            src = os.path.join(root, file)
+            dst = os.path.join(os.path.dirname(snippet_folder), dst_folder_name,
+                               rel_path(src))
+            dst = dst[:-13] + '.sublime-snippet'
+            generate_snippet(src, dst)
 
 def generate_sane_snippets(sublime_snippet_path, dst_folder_name):
     """Used to migrate from normal snippet to sane snippets"""
@@ -114,4 +114,7 @@ def generate_sane_snippets(sublime_snippet_path, dst_folder_name):
             dst = os.path.join(os.path.dirname(sublime_snippet_path), dst_folder_name,
                                rel_path(src))
             dst = dst[:-16] + '.sane-snippet'
-            generate_sane_snippet(src, dst)
+            generate_snippet(src, dst)
+
+# generate_sublime_snippets(os.path.join(sublime.packages_path(), 'User', 'sane-snippets'), 'snippets')
+# generate_sane_snippets(os.path.join(sublime.packages_path(), 'User', 'original-snippets'), 'sane-snippets')
