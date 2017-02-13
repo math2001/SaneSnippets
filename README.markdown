@@ -1,4 +1,4 @@
-SaneSnippets for Sublime Text 2
+SaneSnippets for Sublime Text 3
 ===============================
 
 SaneSnippets consist of text files with little bit of YAML front matter. They're
@@ -52,9 +52,9 @@ Clone SaneSnippets into your `Packages` directory:
 
 The Packages directory is located at:
 
- * **Linux**:   `~/.Sublime Text 2/Packages/`
- * **OS X**:    `~/Library/Application Support/Sublime Text 2/Packages/`
- * **Windows**: `%APPDATA%/Sublime Text 2/Packages/`
+ * **Linux**:   `~/.Sublime Text 3/Packages/`
+ * **OS X**:    `~/Library/Application Support/Sublime Text 3/Packages/`
+ * **Windows**: `%APPDATA%/Sublime Text 3/Packages/`
 
 Or type `sublime.packages_path()` into the console (`` Ctrl-` ``).
 

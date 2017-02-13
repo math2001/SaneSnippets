@@ -90,31 +90,27 @@ def generate_snippet(src, dst):
     with open(dst, 'w', encoding='utf-8') as fp:
         fp.write(SnippetConvertor.stringify(snippetobj, SnippetConvertor.get_format(dst)))
 
-def generate_sublime_snippets(snippet_folder, dst_folder_name):
-    """Export every sane-snippet to the corresponding .sublime-snippet file"""
-    rel_path = lambda file: file[len(snippet_folder):].strip(os.path.sep + '/')
-    for root, dirs, files in os.walk(snippet_folder):
-        for file in files:
-            if not file.endswith('.sane-snippet'):
-                continue
-            src = os.path.join(root, file)
-            dst = os.path.join(os.path.dirname(snippet_folder), dst_folder_name,
-                               rel_path(src))
-            dst = dst[:-13] + '.sublime-snippet'
-            generate_snippet(src, dst)
+def generate_snippets(src_folder, dst_folder_name, action):
+    """src_folder is an absolute path to the [sane] snippets folder,
+       and dst_folder_name is the *name* of the destination folder"""
+    if action not in ['convert', 'migrate']:
+        raise ValueError("The 'action' is invalid: '{}'".format(action))
 
-def generate_sane_snippets(sublime_snippet_path, dst_folder_name):
-    """Used to migrate from normal snippet to sane snippets"""
-    rel_path = lambda file: file[len(sublime_snippet_path):].strip(os.path.sep + '/')
-    for root, dirs, files in os.walk(sublime_snippet_path):
+    rel_path = lambda file: file[len(src_folder):].strip(os.path.sep + '/')
+    for root, dirs, files in os.walk(src_folder):
         for file in files:
-            if not file.endswith('.sublime-snippet'):
+            if not file.endswith('.sane-snippet' if action == 'convert' else '.sublime-snippet'):
                 continue
             src = os.path.join(root, file)
-            dst = os.path.join(os.path.dirname(sublime_snippet_path), dst_folder_name,
+            dst = os.path.join(os.path.dirname(src_folder), dst_folder_name,
                                rel_path(src))
-            dst = dst[:-16] + '.sane-snippet'
+            if action == 'convert':
+                dst = dst[:-13] + '.sublime-snippet'
+            else:
+                dst = dst[:-16] + '.sane-snippet'
             generate_snippet(src, dst)
 
 # generate_sublime_snippets(os.path.join(sublime.packages_path(), 'User', 'sane-snippets'), 'snippets')
 # generate_sane_snippets(os.path.join(sublime.packages_path(), 'User', 'original-snippets'), 'sane-snippets')
+# generate_snippets(os.path.join(sublime.packages_path(), 'User', 'original-snippets'), 'sane-snippets', 'migrate')
+# generate_snippets(os.path.join(sublime.packages_path(), 'User', 'sane-snippets'), 'snippets', 'convert')

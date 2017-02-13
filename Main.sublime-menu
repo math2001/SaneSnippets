@@ -6,18 +6,14 @@
             {
                 "id": "packages",
                 "caption": "Packages",
+                "mnemonic": "P",
                 "children":
                 [
                     {
-                        "id":      "sane_snippets",
+                        "id": "sane_snippets",
                         "caption": "SaneSnippets",
                         "children":
                         [
-                            {
-                                "id":      "new_sane_snippet",
-                                "caption": "New SaneSnipet…",
-                                "command": "new_sane_snippet"
-                            },
                             {
                                 "id":      "regenerate_sane_snippets",
                                 "caption": "Regenerate SaneSnippets",
