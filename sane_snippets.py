@@ -9,7 +9,7 @@ from .functions import *
 def plugin_loaded():
     sublime.run_command('generate_snippets')
 
-class SaneSnippet(sublime_plugin.EventListener):
+class SaneSnippetListener(sublime_plugin.EventListener):
 
     def on_post_save(self, view):
         if not view.file_name().endswith('.sane-snippet'):
@@ -17,11 +17,9 @@ class SaneSnippet(sublime_plugin.EventListener):
         snippet = Snippet(view.file_name())
         snippet.convert(force=True)
 
-class GenerateSnippetsCommand(sublime_plugin.ApplicationCommand):
+class SaneSnippetsCommand(sublime_plugin.ApplicationCommand):
 
-    """Convert all .sane-snippets into .sublime-snippet"""
-
-    def run(self):
+    def generate_action(self):
 
         for dirname, dirs, files in walk_tree(sublime.packages_path()):
 
@@ -30,8 +28,14 @@ class GenerateSnippetsCommand(sublime_plugin.ApplicationCommand):
                     continue
 
                 Snippet(os.path.join(dirname, file)).convert(force=True)
-                
-class ClearSnippetsCommand(sublime_plugin.ApplicationCommand):
 
-    def run(self):
+    def clean_action(self):
         clean()
+
+    def run(self, action, *args, **kwargs):
+        try:
+            function = getattr(self, action + '_action')
+        except AttributeError:
+            return sublime.error_message("SaneSnippet: "
+                                         "Couldn't find the action '{}'".format(action))
+        function(*args, **kwargs)

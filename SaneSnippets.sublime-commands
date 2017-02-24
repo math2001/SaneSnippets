@@ -1,3 +1,9 @@
 [
-    { "command": "regenerate_sane_snippets", "caption": "SaneSnippets: Regenerate SaneSnippets" }
+    {
+        "caption": "SaneSnippets: Generate Sublime Snippets",
+        "command": "sane_snippets",
+        "args": {
+            "action": "generate"
+        }
+    }
 ]

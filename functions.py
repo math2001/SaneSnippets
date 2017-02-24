@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+import os
 
 def min_length(arr, length, fill=None):
     return arr + [fill] * (length - len(arr))

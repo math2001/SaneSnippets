@@ -15,9 +15,11 @@
                         "children":
                         [
                             {
-                                "id":      "regenerate_sane_snippets",
-                                "caption": "Regenerate SaneSnippets",
-                                "command": "regenerate_sane_snippets"
+                                "caption": "Generate Sublime Snippets",
+                                "command": "sane_snippets",
+                                "args": {
+                                    "action": "generate"
+                                }
                             }
                         ]
                     }
