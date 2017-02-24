@@ -60,7 +60,7 @@ class Snippet:
                 'description': getattr(root.find('description'), 'text', ''),
             }
         elif self.format == 'sane':
-            with open(self.file_name, 'r') as fp:
+            with open(self.file_name, 'r', encoding='utf-8') as fp:
                 matchobj = cls.re_sane.match(fp.read())
             header, content = matchobj.group('header'), matchobj.group('content')
             if content.endswith('\n'):
@@ -96,7 +96,7 @@ class Snippet:
             raise FileExistsError("The file '{}' already exists "
                                   "(and the content differs)".format(dst))
 
-        with open(dst, 'w') as fp:
+        with open(dst, 'w', encoding='utf-8') as fp:
             fp.write(snippet_string)
 
     def get_dst(self):
