@@ -90,7 +90,11 @@ class Snippet:
         dst = self.get_dst()
 
         if os.path.exists(dst) and not force:
-            raise FileExistsError("The file '{}' already exists".format(dst))
+            with open(dst, encoding='utf-8') as fp:
+                if fp.read() == snippet_string:
+                    return
+            raise FileExistsError("The file '{}' already exists "
+                                  "(and the content differs)".format(dst))
 
         with open(dst, 'w') as fp:
             fp.write(snippet_string)
