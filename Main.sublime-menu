@@ -20,6 +20,13 @@
                                 "args": {
                                     "action": "generate"
                                 }
+                            },
+                            {
+                                "caption": "Migrate From Sublime Snippets to Sane Snippets 👍",
+                                "command": "sane_snippets",
+                                "args": {
+                                    "action": "migrate"
+                                }
                             }
                         ]
                     }
