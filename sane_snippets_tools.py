@@ -8,7 +8,7 @@ import re
 
 SANE_EXTENSION = '.sane-snippet'
 
-class SnippetConvertor:
+class Snippet:
 
     templates = {
         'xml': dedent("""\
@@ -32,19 +32,22 @@ class SnippetConvertor:
     re_sane = re.compile(r'---\n(?P<header>.*?)\n---\n(?P<content>.*)', re.DOTALL)
     re_sane_header_line = re.compile(r'^(?:(?P<comment>#.*)|(?P<key>[a-zA-Z]+): *(?P<value>.*))$')
 
-    @classmethod
-    def get_format(cls, file):
-        if file.endswith('.sane-snippet'):
+    def __init__(self, file_name):
+        self.file_name = file_name
+        self.format = self.get_format()
+
+    def get_format(self):
+        if self.file_name.endswith('.sane-snippet'):
             return 'sane'
-        elif file.endswith('.sublime-snippet'):
+        elif self.file_name.endswith('.sublime-snippet'):
             return 'xml'
         else:
             raise ValueError('Unknown file format')
 
-    @classmethod
-    def parse(cls, file, format_):
-        if format_ == 'xml':
-            root = ET.parse(file).getroot()
+    def parse(self):
+        cls = self.__class__
+        if self.format == 'xml':
+            root = ET.parse(self.file_name).getroot()
             content = getattr(root.find('content'), 'text', '')
             if content.startswith('\n'):
                 content = content[1:]
@@ -56,8 +59,8 @@ class SnippetConvertor:
                 'scope': getattr(root.find('scope'), 'text', ''),
                 'description': getattr(root.find('description'), 'text', ''),
             }
-        elif format_ == 'sane':
-            with open(file, 'r') as fp:
+        elif self.format == 'sane':
+            with open(self.file_name, 'r') as fp:
                 matchobj = cls.re_sane.match(fp.read())
             header, content = matchobj.group('header'), matchobj.group('content')
             if content.endswith('\n'):
@@ -77,40 +80,39 @@ class SnippetConvertor:
                 'description': infos.get('description', ''),
             }
 
-    @classmethod
-    def stringify(cls, snippetobj, format_):
-        return cls.templates[format_].format(**snippetobj)
 
-def generate_snippet(src, dst):
-    """Automatically detects if it has to convert it to a sane or sublime format"""
-    format_ = SnippetConvertor.get_format(src)
-    snippetobj = SnippetConvertor.parse(src, format_)
-    if not os.path.exists(os.path.dirname(dst)):
-        os.makedirs(os.path.dirname(dst))
-    with open(dst, 'w', encoding='utf-8') as fp:
-        fp.write(SnippetConvertor.stringify(snippetobj, SnippetConvertor.get_format(dst)))
+    def convert(self, force=False):
+        if self.format == 'xml':
+            snippet_string = self.__class__.templates['sane'].format(**self.parse())
+        elif self.format == 'sane':
+            snippet_string = self.__class__.templates['xml'].format(**self.parse())
 
-def generate_snippets(src_folder, dst_folder_name, action):
-    """src_folder is an absolute path to the [sane] snippets folder,
-       and dst_folder_name is the *name* of the destination folder"""
-    if action not in ['convert', 'migrate']:
-        raise ValueError("The 'action' is invalid: '{}'".format(action))
+        dst = self.get_dst()
 
-    rel_path = lambda file: file[len(src_folder):].strip(os.path.sep + '/')
-    for root, dirs, files in os.walk(src_folder):
+        if os.path.exists(dst) and not force:
+            raise FileExistsError("The file '{}' already exists".format(dst))
+
+        with open(dst, 'w') as fp:
+            fp.write(snippet_string)
+
+    def get_dst(self):
+        extension = '.sublime-snippet' if self.format == 'sane' else '.sane-snippet'
+        return os.path.normpath(
+                os.path.join(os.path.dirname(self.file_name),
+                             os.path.splitext(os.path.basename(self.file_name))[0] + extension))
+
+    def __str__(self):
+        return "<Snippet '{}' at '{}'>".format(self.format, self.file_name)
+
+    def __repr__(self):
+        return str(self)
+
+def clean():
+    """Remove .sublime-snippet that do not have a .sans-snippet equivalent"""
+    for dirname, dirs, files in walk_tree(sublime.packages_path()):
         for file in files:
-            if not file.endswith('.sane-snippet' if action == 'convert' else '.sublime-snippet'):
+            if not file.endswith('.sublime-snippet'):
                 continue
-            src = os.path.join(root, file)
-            dst = os.path.join(os.path.dirname(src_folder), dst_folder_name,
-                               rel_path(src))
-            if action == 'convert':
-                dst = dst[:-13] + '.sublime-snippet'
-            else:
-                dst = dst[:-16] + '.sane-snippet'
-            generate_snippet(src, dst)
 
-# generate_sublime_snippets(os.path.join(sublime.packages_path(), 'User', 'sane-snippets'), 'snippets')
-# generate_sane_snippets(os.path.join(sublime.packages_path(), 'User', 'original-snippets'), 'sane-snippets')
-# generate_snippets(os.path.join(sublime.packages_path(), 'User', 'original-snippets'), 'sane-snippets', 'migrate')
-# generate_snippets(os.path.join(sublime.packages_path(), 'User', 'sane-snippets'), 'snippets', 'convert')
+            if not os.path.exists(Snippet(os.path.join(dirname, file)).get_dst()):
+                os.remove(os.path.join(dirname, file))

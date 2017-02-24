@@ -3,21 +3,35 @@
 import sublime
 import sublime_plugin
 import os.path
-from .sane_snippets_tools import generate_snippet, generate_snippets
+from .sane_snippets_tools import Snippet, clean
 from .functions import *
 
 def plugin_loaded():
-    pass
+    sublime.run_command('generate_snippets')
 
 class SaneSnippet(sublime_plugin.EventListener):
 
     def on_post_save(self, view):
-        file_name = view.file_name()
-        if not file_name.endswith('.sane-snippet'):
+        if not view.file_name().endswith('.sane-snippet'):
             return
-        rel_path = file_name.replace(sublime.packages_path(), '').strip(os.path.sep)
-        package, folder, path = min_length(rel_path.split(os.path.sep, 2), 3)
-        if folder is None:
-            dst = os.path.splitext(file_name)[0] + '.sublime-snippet'
-            generate_snippet(src=file_name, dst=dst)
-        sublime.status_message("SaneSnippet: Generated '{}'".format(dst))
+        snippet = Snippet(view.file_name())
+        snippet.convert(force=True)
+
+class GenerateSnippetsCommand(sublime_plugin.ApplicationCommand):
+
+    """Convert all .sane-snippets into .sublime-snippet"""
+
+    def run(self):
+
+        for dirname, dirs, files in walk_tree(sublime.packages_path()):
+
+            for file in files:
+                if not file.endswith('.sane-snippet'):
+                    continue
+
+                Snippet(os.path.join(dirname, file)).convert(force=True)
+                
+class ClearSnippetsCommand(sublime_plugin.ApplicationCommand):
+
+    def run(self):
+        clean()
