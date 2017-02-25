@@ -31,7 +31,7 @@ Installation
 
 ### Using Sublime Package Control
 
-Pick this option. Install via [Sublime Package Control](http://wbond.net/sublime_packages/package_control),
+Pick this option. Install via [Sublime Package Control](https://packagecontrol.io/packages/SaneSnippets),
 using the `Package Control: Install Package` menu item. Look for `SaneSnippets`
 in the package list.
 
@@ -50,14 +50,13 @@ Clone SaneSnippets into your `Packages` directory:
 
 ----
 
-The Packages directory is located at:
+The `Packages` directory is located at:
 
  * **Linux**:   `~/.Sublime Text 3/Packages/`
  * **OS X**:    `~/Library/Application Support/Sublime Text 3/Packages/`
  * **Windows**: `%APPDATA%/Sublime Text 3/Packages/`
 
-Or type `sublime.packages_path()` into the console (`` Ctrl-` ``).
-
+Here's how to get there: *Preferences → Browse Packages*
 
 Usage
 -----

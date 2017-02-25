@@ -15,14 +15,21 @@
                         "children":
                         [
                             {
-                                "caption": "Generate Sublime Snippets",
+                                "caption": "↻ Generate Sublime Snippets",
                                 "command": "sane_snippets",
                                 "args": {
                                     "action": "generate"
                                 }
                             },
                             {
-                                "caption": "Migrate From Sublime Snippets to Sane Snippets 👍",
+                                "caption": "👌 Clean Sublime Snippets",
+                                "command": "sane_snippets",
+                                "args": {
+                                    "action": "clean"
+                                }
+                            },
+                            {
+                                "caption": "👍 Migrate From Sublime Snippets to Sane Snippets",
                                 "command": "sane_snippets",
                                 "args": {
                                     "action": "migrate"
