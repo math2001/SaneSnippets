@@ -3,7 +3,7 @@
 import sublime
 import sublime_plugin
 import os.path
-from .sane_snippets_tools import Snippet, clean
+from .sane_snippets_tools import Snippet
 from .functions import *
 
 def plugin_loaded():
@@ -12,15 +12,17 @@ def plugin_loaded():
 class SaneSnippetListener(sublime_plugin.EventListener):
 
     def on_post_save(self, view):
-        if not view.file_name().endswith('.sane-snippet'):
+        file_name = view.file_name()
+        if not file_name.endswith('.sane-snippet'):
             return
-        snippet = Snippet(view.file_name())
-        snippet.convert(force=True)
+        snippet = Snippet(file_name).convert(force=True)
+        sublime.run_command('sane_snippets', {'action': 'clean',
+                                              'path': os.path.dirname(file_name)})
 
 class SaneSnippetsCommand(sublime_plugin.ApplicationCommand):
 
     def generate_action(self):
-
+        """Convert every .sane-snippet to a .sublime-snippet"""
         for dirname, dirs, files in walk_tree(sublime.packages_path()):
 
             for file in files:
@@ -29,8 +31,15 @@ class SaneSnippetsCommand(sublime_plugin.ApplicationCommand):
 
                 Snippet(os.path.join(dirname, file)).convert(force=True)
 
-    def clean_action(self):
-        clean()
+    def clean_action(self, path=''):
+        """Removes .sublime-snippet that do not have a .sans-snippet equivalent"""
+        for dirname, dirs, files in walk_tree(os.path.join(sublime.packages_path(), path)):
+            for file in files:
+                if not file.endswith('.sublime-snippet'):
+                    continue
+
+                if not os.path.exists(Snippet(os.path.join(dirname, file)).get_dst()):
+                    os.remove(os.path.join(dirname, file))
 
     def migrate_action(self, soft=None):
         """Create .sane-snippet from .sublime-snippet

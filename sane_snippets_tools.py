@@ -110,13 +110,3 @@ class Snippet:
 
     def __repr__(self):
         return str(self)
-
-def clean():
-    """Remove .sublime-snippet that do not have a .sans-snippet equivalent"""
-    for dirname, dirs, files in walk_tree(sublime.packages_path()):
-        for file in files:
-            if not file.endswith('.sublime-snippet'):
-                continue
-
-            if not os.path.exists(Snippet(os.path.join(dirname, file)).get_dst()):
-                os.remove(os.path.join(dirname, file))
