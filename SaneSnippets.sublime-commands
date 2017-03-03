@@ -5,5 +5,19 @@
         "args": {
             "action": "generate"
         }
+    },
+    {
+        "caption": "SaneSnippets: Migrate",
+        "command": "sane_snippets",
+        "args": {
+            "action": "migrate"
+        }
+    },
+    {
+        "caption": "SaneSnippets: Clean Snippets",
+        "command": "sane_snippets",
+        "args": {
+            "action": "clean"
+        }
     }
 ]
